@@ -1,6 +1,6 @@
 OpenSea asset scraper written in Python
 
-opensea.exe is for mysterious cloudflare bypassing
+opensea.exe for mysterious cloudflare bypassing
 
 
 ```python
