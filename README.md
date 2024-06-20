@@ -1,4 +1,4 @@
-OpenSea asset scraper written in Python
+OpenSea image scraper written in Python
 
 opensea.exe for mysterious cloudflare bypassing
 
