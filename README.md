@@ -49,10 +49,13 @@ def download_parallel(args):
   for result in results:
     print('url:', result[0], 'time (s):', result[1])
 
-total_count = json.loads(subprocess.check_output(['opensea.exe', "info", collection, "None", "None"]).decode())["data"]["collectionItems"]["totalCount"]
-collection_name = json.loads(subprocess.check_output(['opensea.exe', "info", collection, "None", "None"]).decode())["data"]["collectionItems"]["edges"][0]["node"]["collection"]["name"]
-address = json.loads(subprocess.check_output(['opensea.exe', "address", collection, "None", "None"]).decode())["data"]["collection"]["representativeAsset"]["assetContract"]["address"]
-identifier = json.loads(subprocess.check_output(['opensea.exe', "address", collection, "None", "None"]).decode())["data"]["collection"]["defaultChain"]["identifier"]
+collection_info = json.loads(subprocess.check_output(['opensea.exe', "info", collection, "None", "None"]).decode())
+contract_info = json.loads(subprocess.check_output(['opensea.exe', "address", collection, "None", "None"]).decode())
+
+total_count = collection_info["data"]["collectionItems"]["totalCount"]
+collection_name = collection_info["data"]["collectionItems"]["edges"][0]["node"]["collection"]["name"]
+address = contract_info["data"]["collection"]["representativeAsset"]["assetContract"]["address"]
+identifier = contract_info["data"]["collection"]["defaultChain"]["identifier"]
 if not os.path.exists("{}/{}".format(root, collection_name)):
     os.mkdir("{}/{}".format(root, collection_name))
 
