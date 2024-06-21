@@ -6,24 +6,36 @@ import time
 import json
 import os
 
-collection = "https://opensea.io/collection/remilio-babies"
-cursor = "xx"
+collection = "https://opensea.io/collection/cryptopunks"
 
+root = "G:\\nft-collections"
 collection = collection.split("/collection/")[1]
 arguments = []
 page = 1
 
-if not os.path.exists(collection):
-    os.mkdir(collection)
-
 def download_url(args):
     t0 = time.time()
-    url = args[0]
-    file_name = args[1]
-    with open(file_name, 'wb') as f:
-        req = requests.get(url)
-        f.write(req.content)
-    return (url, time.time() - t0)
+
+    while True:
+        if os.path.exists(args[1]):
+            return "already exists...", time.time() - t0
+
+        try:
+            base = json.loads(subprocess.check_output(['opensea.exe', "lookup", args[0][0], args[0][1], args[0][2]]).decode())
+            try:
+                if "404" in base["errors"][0]["message"]:
+                        return "404...", time.time() - t0
+            except:
+                pass
+            url = base["data"]["nft"]["imageUrl"].replace("?w=500", "?w=1000")
+        except Exception as e:
+            time.sleep(1)
+            continue
+
+        with open(args[1], 'wb') as f:
+            req = requests.get(url)
+            f.write(req.content)
+        return url, time.time() - t0
 
 def download_parallel(args):
   cpus = cpu_count()
@@ -31,22 +43,17 @@ def download_parallel(args):
   for result in results:
     print('url:', result[0], 'time (s):', result[1])
 
-while True:
-    j_obj = json.loads(subprocess.check_output(['opensea.exe', collection, cursor]).decode())
-    try:
-        for item in j_obj["data"]["collectionItems"]["edges"]:
-            item = item["node"]
-            tokenId = item["tokenId"]
-            image = item["displayImageUrl"].replace("?w=500", "?w=1000")
-            file_name = "{}/{}.png".format(collection, tokenId)
-            arguments.append([image, file_name])
-        print("Scraping page {}... [count: {}]".format(page, len(arguments)))
-        page += 1
-        if j_obj["data"]["collectionItems"]["pageInfo"]["hasNextPage"]:
-            cursor = j_obj["data"]["collectionItems"]["pageInfo"]["endCursor"]
-        else:
-            break
-    except Exception as e:
-        print(str(e))
+collection_info = json.loads(subprocess.check_output(['opensea.exe', "info", collection, "None", "None"]).decode())
+contract_info = json.loads(subprocess.check_output(['opensea.exe', "address", collection, "None", "None"]).decode())
+
+total_count = collection_info["data"]["collectionItems"]["totalCount"]
+collection_name = collection_info["data"]["collectionItems"]["edges"][0]["node"]["collection"]["name"]
+address = contract_info["data"]["collection"]["representativeAsset"]["assetContract"]["address"]
+identifier = contract_info["data"]["collection"]["defaultChain"]["identifier"]
+if not os.path.exists("{}/{}".format(root, collection_name)):
+    os.mkdir("{}/{}".format(root, collection_name))
+
+for i in range(0, total_count+1):
+    arguments.append([(str(i), address, identifier), "{}/{}/{}.png".format(root, collection_name, i)])
 
 download_parallel(arguments)
