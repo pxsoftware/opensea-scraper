@@ -23,7 +23,7 @@ def download_url(args):
     t0 = time.time()
 
     while True:
-        if os.path.exists(args[1]):
+        if os.path.exists(args[1]) and os.path.getsize(args[1]) > 0:
             return "already exists...", time.time() - t0
 
         try:
